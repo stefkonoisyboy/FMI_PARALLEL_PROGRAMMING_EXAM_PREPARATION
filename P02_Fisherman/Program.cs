@@ -35,16 +35,18 @@ class Program
     
     static void Client(object tag)
     {
-        int wanted = Random.Shared.Next(1, 5);
+        int wanted = Random.Shared.Next(1, 8);
         
         lock (fishLock)
         {
             while (fish < wanted)
             {
+                Console.WriteLine($"Client {tag} wants {wanted} fish, but only {fish} available. Waiting...");
                 Monitor.Wait(fishLock);
             }
             
             fish -= wanted;
+            Console.WriteLine($"Client {tag} bought {wanted} fish, now {fish}.");
         }
     }
 
@@ -53,14 +55,20 @@ class Program
         while (marketOpen)
         {
             Thread.Sleep(50);
-            
+
+            int loaded = Random.Shared.Next(1, 5);
+
             lock (fishLock)
             {
-                if (fish < Capacity)
+                if (fish + loaded < Capacity)
                 {
-                    fish++;
+                    fish += loaded;
                     Monitor.PulseAll(fishLock);
-                    Console.WriteLine($"Loaded 1 fish, now {fish}.");
+                    Console.WriteLine($"Loaded {loaded} fish, now {fish}.");
+                }
+                else
+                {
+                    Console.WriteLine($"Could not load {loaded} fish, market full with {fish}.");
                 }
             }
         }
